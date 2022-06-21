@@ -105,14 +105,11 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
   final FocusNode _widgetFocusNode = FocusNode();
   final FocusNode _searchFocusNode = FocusNode();
   final LayerLink _layerLink = LayerLink();
-  final ValueNotifier<List<T>> _listItemsValueNotifier =
-      ValueNotifier<List<T>>([]);
+  final ValueNotifier<List<T>> _listItemsValueNotifier = ValueNotifier<List<T>>([]);
   final TextEditingController _searchTextController = TextEditingController();
-  final DropdownEditingController<T>? _controller =
-      DropdownEditingController<T>();
+  final DropdownEditingController<T>? _controller = DropdownEditingController<T>();
 
-  final Function(T?, T?) _selectedFn =
-      (dynamic item1, dynamic item2) => item1 == item2;
+  final Function(T?, T?) _selectedFn = (dynamic item1, dynamic item2) => item1 == item2;
 
   bool get _isEmpty => _selectedItem == null;
   bool _isFocused = false;
@@ -126,10 +123,9 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
   Timer? _debounce;
   String? _lastSearchString;
 
-  DropdownEditingController<dynamic>? get _effectiveController =>
-      widget.controller ?? _controller;
+  DropdownEditingController<dynamic>? get _effectiveController => widget.controller ?? _controller;
 
-  DropdownFormFieldState() : super() {}
+  DropdownFormFieldState() : super();
 
   @override
   void initState() {
@@ -179,8 +175,9 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
           child: FormField(
             validator: (str) {
               if (widget.validator != null) {
-                widget.validator!(_effectiveController!.value);
+                return widget.validator!(_effectiveController!.value);
               }
+              return null;
             },
             onSaved: (str) {
               if (widget.onSaved != null) {
@@ -210,8 +207,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
                           _onTextChanged(str);
                         },
                         onSubmitted: (str) {
-                          _searchTextController.value =
-                              TextEditingValue(text: "");
+                          _searchTextController.value = TextEditingValue(text: "");
                           _setValue();
                           _removeOverlay();
                           _widgetFocusNode.nextFocus();
@@ -257,8 +253,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
                                     T item = _options![position];
                                     Function() onTap = () {
                                       _listItemFocusedPosition = position;
-                                      _searchTextController.value =
-                                          TextEditingValue(text: "");
+                                      _searchTextController.value = TextEditingValue(text: "");
                                       _removeOverlay();
                                       _setValue();
                                     };
@@ -266,8 +261,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
                                       item,
                                       position,
                                       position == _listItemFocusedPosition,
-                                      (widget.selectedFn ?? _selectedFn)(
-                                          _selectedItem, item),
+                                      (widget.selectedFn ?? _selectedFn)(_selectedItem, item),
                                       onTap,
                                     );
 
@@ -278,8 +272,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
                                   child: Column(
                                     mainAxisSize: MainAxisSize.max,
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
                                       Text(
                                         widget.emptyText,
@@ -288,10 +281,8 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
                                       if (widget.onEmptyActionPressed != null)
                                         TextButton(
                                           onPressed: () async {
-                                            await widget
-                                                .onEmptyActionPressed!();
-                                            _search(_searchTextController
-                                                .value.text);
+                                            await widget.onEmptyActionPressed!();
+                                            _search(_searchTextController.value.text);
                                           },
                                           child: Text(widget.emptyActionText),
                                         ),
@@ -328,8 +319,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
       _overlayEntry = _createOverlayEntry();
       if (_overlayEntry != null) {
         // Overlay.of(context)!.insert(_overlayEntry!);
-        Overlay.of(context)!
-            .insertAll([_overlayBackdropEntry!, _overlayEntry!]);
+        Overlay.of(context)!.insertAll([_overlayBackdropEntry!, _overlayEntry!]);
         setState(() {
           _searchFocusNode.requestFocus();
         });
@@ -366,7 +356,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
     });
   }
 
-  _onKeyPressed(RawKeyEvent event) {
+  KeyEventResult _onKeyPressed(RawKeyEvent event) {
     // print('_onKeyPressed : ${event.character}');
     if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
       if (_searchFocusNode.hasFocus) {
@@ -374,26 +364,26 @@ class DropdownFormFieldState<T> extends State<DropdownFormField>
       } else {
         _toggleOverlay();
       }
-      return false;
+      return KeyEventResult.ignored;
     } else if (event.isKeyPressed(LogicalKeyboardKey.escape)) {
       _removeOverlay();
-      return true;
+      return KeyEventResult.handled;
     } else if (event.isKeyPressed(LogicalKeyboardKey.arrowDown)) {
       int v = _listItemFocusedPosition;
       v++;
       if (v >= _options!.length) v = 0;
       _listItemFocusedPosition = v;
       _listItemsValueNotifier.value = List<T>.from(_options ?? []);
-      return true;
+      return KeyEventResult.handled;
     } else if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)) {
       int v = _listItemFocusedPosition;
       v--;
       if (v < 0) v = _options!.length - 1;
       _listItemFocusedPosition = v;
       _listItemsValueNotifier.value = List<T>.from(_options ?? []);
-      return true;
+      return KeyEventResult.handled;
     }
-    return false;
+    return KeyEventResult.ignored;
   }
 
   _search(String str) async {
